@@ -1,0 +1,88 @@
+# This is an exported workflow. Editing this file is not recommended.
+
+name: Network_Containment
+description: Workflow para contenção de máquinas windows após detecção de alertas com severidade "critical" e notificação em tela
+trigger:
+    next:
+        - severity_is_equal_to_critical
+    event: Investigatable/EPP
+    type: Signal
+actions:
+    ContainDevice:
+        id: bec9fbeb4999d207937854fd56088107
+        properties:
+            device_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+    PutAndRunFile2:
+        next:
+            - Sleep3
+        id: a29b38809708ffc5fb18a03676520b1a
+        properties:
+            device_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+            file_name: CS_pre-containment_cleanup.exe
+        version_constraint: ~1
+    PutAndRunFile3:
+        next:
+            - Sleep
+        id: a29b38809708ffc5fb18a03676520b1a
+        properties:
+            device_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+            file_name: CS_notify_network_containment.exe
+        version_constraint: ~1
+    PutFile4:
+        id: 1f4e86048c1e676a59f60e961a8c0c15
+        properties:
+            device_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+            file_name: CS_notify_network_containment.html
+            file_path: C:\Windows\TEMP
+        version_constraint: ~1
+    PutFile5:
+        id: 1f4e86048c1e676a59f60e961a8c0c15
+        properties:
+            device_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+            file_name: CS_notify_network_containment.cmd
+            file_path: C:\Windows\TEMP
+        version_constraint: ~1
+    PutFile6:
+        id: 1f4e86048c1e676a59f60e961a8c0c15
+        properties:
+            device_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+            file_name: CS_company_logo.png
+            file_path: C:\Windows\TEMP\
+        version_constraint: ~1
+    Sleep:
+        next:
+            - ContainDevice
+        id: 4f1af1ae4c13dc1e3bcd725f8dc0f63b
+        properties:
+            sleep_time: 5s
+        version_constraint: ~1
+    Sleep3:
+        next:
+            - PutFile6
+            - PutFile4
+            - PutFile5
+            - PutAndRunFile3
+        id: 4f1af1ae4c13dc1e3bcd725f8dc0f63b
+        properties:
+            sleep_time: 10s
+        version_constraint: ~1
+    activity_8802abcd-0193-4306-abab-7f21d5a2651c:
+        next:
+            - sensor_platform_is_equal_to_windows
+        id: 8cf2d108a75d144c8cfd62e104fb115b
+        properties:
+            continue_if_entity_not_found: true
+            sensor_id: ${Trigger.Category.Investigatable.Product.EPP.Sensor.SensorID}
+conditions:
+    sensor_platform_is_equal_to_windows:
+        next:
+            - PutAndRunFile2
+        expression: Trigger.Category.Investigatable.Product.EPP.Sensor.Platform:'Windows'
+        display:
+            - Sensor platform is equal to Windows
+    severity_is_equal_to_critical:
+        next:
+            - activity_8802abcd-0193-4306-abab-7f21d5a2651c
+        expression: Trigger.Category.Investigatable.Severity:5
+        display:
+            - Severity is equal to Critical
